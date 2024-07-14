@@ -4,17 +4,17 @@
 ; Changes and improvements: karx11erx. This version may be a bit overengineered, but that helped me to debug and try out things.
 
 ; Change the values below to YOUR keybinds
-OpenMap = M
-Interact = E
-Sprint = Shift
+OpenMapKey = M
+InteractKey = E
+SprintKey = Shift
 Ghost = Tab
 Orbit = Backspace
 
 ; Global data
 WinWidth := A_ScreenWidth
 WinHeight := A_ScreenHeight
-xMid := % A_ScreenWidth / 2
-yMid := % A_ScreenHeight / 2
+CenterX := % A_ScreenWidth / 2
+CenterY := % A_ScreenHeight / 2
 PointsPerChest := 25
 OverthrowLevelPoints := 1000
 ReloadsToReset = % OverthrowLevelPoints / PointsPerChest
@@ -29,7 +29,7 @@ ReloadsToReset = % OverthrowLevelPoints / PointsPerChest
 
 
 #::										; Keybind to start macro, which you can change
-GetWindowSize(WinWidth, WinHeight, xMid, yMid)
+GetWindowSize(WinWidth, WinHeight, CenterX, CenterY)
 Loop {    								; Infinite loop to go to orbit
 	reloadLanding := 0
 	Loop %ReloadsToReset% {				; Reloading the Landing 40 times
@@ -48,49 +48,82 @@ Loop {    								; Infinite loop to go to orbit
 }
 
 
+Run()
+{
+	Global SprintKey
+	Send {w Down}						; Hold w
+	Send {%SprintKey% Down}				; Activate sprint
+}
+
+
+StandStill()
+{
+	Global SprintKey
+	Send {%SprintKey% Up}				; Let go of sprint
+	Send {w Up}							; Let go of w
+}
+
+
+Activate(controlName, activationTime)
+{
+	Sleep 100							; Small pause
+	Send % "{" . controlName . " Down}"	; Hold interact control down
+	Sleep activationTime				; Wait for <activationTime> seconds
+	Send % "{" . controlName . " Up}"	; Let go of interact control
+	Sleep 100							; Small pause
+}
+
+
+ClickAt(x, y)
+{
+	SetCursorPos(x, y)					; Move mouse to Launch button
+	Sleep 100							; Small pause
+	Send {LButton}						; Press left click
+}
+
+
+OpenChest()
+{
+	Global InteractKey
+	Activate(InteractKey, 1200)
+}
+
+
 WalkToChest()
 {
-	Global Sprint, Interact
 	TurnCharacter(-700)					; Turn character slightly left
-	Send {w Down}						; Hold w
-	Send {%Sprint% Down}				; Activate sprint
-	Sleep 7400							; Run towards plant for 7.4 seconds
-	Send {%Sprint% Up}					; Let go of sprint
-	Send {w Up}							; Let go of w
+	Run()
+	Sleep 7400							; Run towards plant for 7.4 seconds (by waiting 7.4s before releasing sprint and walk forward keys)
+	StandStill()
 	TurnCharacter(2900)					; Turn character right
 	Sleep 23000							; Wait 23 seconds to allow chests to spawn (makes a bit over 30 secs together with the previous walking part)
-	Send {w Down}						; Hold w
-	Send {%Sprint% Down}				; Active sprint
+	Run()
 	Sleep 6400							; Run towards chest for 6.4 seconds
-	TurnCharacter(-650)					; Turn slightly left towards chest
-	Sleep 3100							; Continue to run for 3.1 seconds
-	Send {%Sprint% Up}					; Let go of sprint
-	Send {w Up}							; Let go of w
-	TurnCharacter(-1800,-250)			; Face the chest
-	Sleep 100							; Small pause
-	Send {%Interact% Down}				; Hold interact keybind down
-	Sleep 1200							; Wait for 1.2 seconds
-	Send {%Interact% Up}				; Let go of interact keybind
-	Sleep 100							; Small pause
+	TurnCharacter(-650)					; While running, turn slightly left towards chest
+	Sleep 3100							; run another 3.1 seconds in the new direction
+	StandStill()
+	TurnCharacter(-1800)				; Face the chest 
+	OpenChest()
 }
 
 
 SelectLanding(reload)
 {
-	Global yMid
-	SetCursorPos(10, yMid)				; Make the map scroll left
+	Global CenterY
+	SetCursorPos(10, CenterY)			; Make the map scroll left
 	Sleep 1500							; Let it scroll for 1.5 secs to put the Landing button in the middle of the screen
-	SetCursorPos(775, yMid)				; Center mouse so map stops moving
-	Send {Lbutton Down}					; Left click
-	Sleep 1200							; Wait 1.2 seconds
-	Send {Lbutton Up}					; Let go of left click
+	SetCursorPos(775, CenterY)			; roughly Center mouse so map stops moving; this also puts it on the Landing's launch button
+	Activate("LButton", 1200)
+	;Send {LButton Down}				; Left click
+	;Sleep 1200							; Wait 1.2 seconds
+	;Send {LButton Up}					; Let go of left click
 }
 
 
 SelectPaleHeart()
 {
-	Global xMid, yMid
-	ClickAt(xMid, yMid)					; Click at the Pale Heart in the Director
+	Global CenterX, CenterY
+	ClickAt(CenterX, CenterY)			; Click at the Pale Heart in the Director
 	Sleep 2000							; Wait 2 seconds
 	SelectLanding(0)
 	ClickAt(1620, 940)					; Click the "Launch" button
@@ -99,11 +132,11 @@ SelectPaleHeart()
 
 LoadLanding(reload)
 {
-	Global OpenMap
-	Send {%OpenMap%}					; Keybind for Map
+	Global OpenMapKey
+	Send {%OpenMapKey%}					; Keybind for Map
 	if (reload)
 	{
-		Sleep 500						; Waiting for Map to load 
+		Sleep 500						; Waiting for Map to load. Depending on your system, this may take longer. If so, increase this number
 		SelectLanding(1)
 		Sleep 10000						; Wait 10 seconds for Landing to load
 	}
@@ -116,15 +149,7 @@ LoadLanding(reload)
 }
 
 
-ClickAt(x, y)
-{
-	SetCursorPos(x, y)					; Move mouse to Launch button
-	Sleep 100							; Small pause
-	Send {Lbutton}						; Press left click
-}
-
-
-GetWindowSize(ByRef width, ByRef height, ByRef xMid, ByRef yMid)
+GetWindowSize(ByRef width, ByRef height, ByRef CenterX, ByRef CenterY)
 {
 	Global WidthScale, HeightScale
 	hwnd := WinExist("Destiny 2")
@@ -140,8 +165,8 @@ GetWindowSize(ByRef width, ByRef height, ByRef xMid, ByRef yMid)
 		width := A_ScreenWidth
 		height := A_ScreenHeight
 	}
-	xMid := % width / 2
-	yMid := % height / 2
+	CenterX := % width / 2
+	CenterY := % height / 2
 }
 
 
