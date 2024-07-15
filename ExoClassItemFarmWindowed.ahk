@@ -5,6 +5,7 @@
 ; This version works with 1080 windowed. Despite being the same resolution, some click coordinates need to be adjusted for 1080p fullscreen.
 ; v1: Redesigned the code, added code for window mode
 ; v2: Fixed the character often not turning at the start when reloading into the Landing directly from the Landing, more code restructuring, increased wait time before running to chest
+; v3: Fixed a syntax error in line 124 (AHK doesn't recognize semicola as start of a comment if they have no trailing whitespace ... /facepalm)
 
 ; Change the values below to YOUR keybinds
 OpenMapKey = M
@@ -121,7 +122,7 @@ SelectLanding()
 	Global CenterY
 	SetCursorPos(10, CenterY)			; Make the map scroll left
 	Sleep 1500							; Let it scroll for 1.5 secs to put the Landing button in the middle of the screen
-	SetCursorPos(LandingButtonX, CenterY); roughly Center mouse so map stops moving; this also puts it on the Landing's launch button
+	SetCursorPos(LandingButtonX, CenterY) ; roughly Center mouse so map stops moving; this also puts it on the Landing's launch button
 	Activate("LButton", 1200)
 }
 
