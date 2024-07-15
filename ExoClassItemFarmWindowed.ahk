@@ -1,7 +1,10 @@
 #SingleInstance force					; Don't allow multiple versions to run
 
 ; Creator: SevenOilRigs :3
-; Changes and improvements: karx11erx. This version may be a bit overengineered, but that helped me to debug and try out things.
+; Changes and improvements: karx11erx/Razzupaltuff. This version may be a bit overengineered, but that helped me to debug and try out things.
+; This version works with 1080 windowed. Despite being the same resolution, some click coordinates need to be adjusted for 1080p fullscreen.
+; v1: Redesigned the code, added code for window mode
+; v2: Fixed the character often not turning at the start when reloading into the Landing directly from the Landing, more code restructuring, increased wait time before running to chest
 
 ; Change the values below to YOUR keybinds
 OpenMapKey = M
@@ -17,11 +20,13 @@ CenterX := % A_ScreenWidth / 2
 CenterY := % A_ScreenHeight / 2
 PointsPerChest := 25
 OverthrowLevelPoints := 1000
-ReloadsToReset = % OverthrowLevelPoints / PointsPerChest
+ReloadsToReset := % OverthrowLevelPoints / PointsPerChest
+LandingButtonX := 775
 
 ; Also, the macro requires you to have the following settings:
-; 7 sensitivity in game (not sure whether that's actually needed, but it doesn't hurt - karx11erx)
+; 7 sensitivity in game (required, or the character will not turn where it needs to - Razzupaltuff)
 ; FPS can be anything but 30 FPS is the most consistent
+; Mouse DPI does not seem to play a role, since AutoHotKey uses a different way to move the mouse
 
 ; Instructions:
 ; Press # when you are in the landing to start the macro
@@ -36,6 +41,8 @@ Loop {    								; Infinite loop to go to orbit
 		LoadLanding(reloadLanding)
 		reloadLanding := 1
 		WalkToChest()
+		OpenChest()
+		Sleep 1000
 	}									; End of loop for running to the chest
 
 	; This section sends you to Orbit and relaunches the Pale Heart to reset your Overthrow
@@ -91,32 +98,31 @@ OpenChest()
 
 WalkToChest()
 {
-	TurnCharacter(-700)					; Turn character slightly left
+	Sleep 1000							; The following actions are only present to make sure the character turns properly at the start, which tends to fail when reloading into the Landing (not coming from orbit)
 	Run()
+	Sleep 100							; Briefly run towards plant for 0.1 seconds 
+	TurnCharacter(-5)					; Turn character very slightly left; This turn command being lost doesn't hurt
+	TurnCharacter(-695)					; Turn character a bit left; This is the actual turn required and is close enough to the required rotation
 	Sleep 7400							; Run towards plant for 7.4 seconds (by waiting 7.4s before releasing sprint and walk forward keys)
 	StandStill()
 	TurnCharacter(2900)					; Turn character right
-	Sleep 23000							; Wait 23 seconds to allow chests to spawn (makes a bit over 30 secs together with the previous walking part)
+	Sleep 24500							; Wait another 24.5 seconds to allow chests to spawn (makes a bit over 33 secs together with the previous walking part. Less may lead running to the chest before it spawns, causing it to not spawn)
 	Run()
 	Sleep 6400							; Run towards chest for 6.4 seconds
 	TurnCharacter(-650)					; While running, turn slightly left towards chest
 	Sleep 3100							; run another 3.1 seconds in the new direction
 	StandStill()
 	TurnCharacter(-1800)				; Face the chest 
-	OpenChest()
 }
 
 
-SelectLanding(reload)
+SelectLanding()
 {
 	Global CenterY
 	SetCursorPos(10, CenterY)			; Make the map scroll left
 	Sleep 1500							; Let it scroll for 1.5 secs to put the Landing button in the middle of the screen
-	SetCursorPos(775, CenterY)			; roughly Center mouse so map stops moving; this also puts it on the Landing's launch button
+	SetCursorPos(LandingButtonX, CenterY); roughly Center mouse so map stops moving; this also puts it on the Landing's launch button
 	Activate("LButton", 1200)
-	;Send {LButton Down}				; Left click
-	;Sleep 1200							; Wait 1.2 seconds
-	;Send {LButton Up}					; Let go of left click
 }
 
 
@@ -125,7 +131,7 @@ SelectPaleHeart()
 	Global CenterX, CenterY
 	ClickAt(CenterX, CenterY)			; Click at the Pale Heart in the Director
 	Sleep 2000							; Wait 2 seconds
-	SelectLanding(0)
+	SelectLanding()
 	ClickAt(1620, 940)					; Click the "Launch" button
 }
 
@@ -137,7 +143,7 @@ LoadLanding(reload)
 	if (reload)
 	{
 		Sleep 500						; Waiting for Map to load. Depending on your system, this may take longer. If so, increase this number
-		SelectLanding(1)
+		SelectLanding()
 		Sleep 10000						; Wait 10 seconds for Landing to load
 	}
 	else
