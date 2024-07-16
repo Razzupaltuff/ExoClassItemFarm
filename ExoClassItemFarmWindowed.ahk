@@ -6,6 +6,7 @@
 ; v1: Redesigned the code, added code for window mode
 ; v2: Fixed the character often not turning at the start when reloading into the Landing directly from the Landing, more code restructuring, increased wait time before running to chest
 ; v3: Fixed a syntax error in line 124 (AHK doesn't recognize semicola as start of a comment if they have no trailing whitespace ... /facepalm)
+; v4: Changed start of running part a bit to avoid the character not turning in the beginning (which sometimes still occurred)
 
 ; Change the values below to YOUR keybinds
 OpenMapKey = M
@@ -101,9 +102,9 @@ WalkToChest()
 {
 	Sleep 1000							; The following actions are only present to make sure the character turns properly at the start, which tends to fail when reloading into the Landing (not coming from orbit)
 	Run()
+	TurnCharacter(-10)					; Turn character very slightly left; This turn command being lost doesn't hurt
 	Sleep 100							; Briefly run towards plant for 0.1 seconds 
-	TurnCharacter(-5)					; Turn character very slightly left; This turn command being lost doesn't hurt
-	TurnCharacter(-695)					; Turn character a bit left; This is the actual turn required and is close enough to the required rotation
+	TurnCharacter(-690)					; Turn character a bit left; This is the actual turn required and is close enough to the required rotation
 	Sleep 7400							; Run towards plant for 7.4 seconds (by waiting 7.4s before releasing sprint and walk forward keys)
 	StandStill()
 	TurnCharacter(2900)					; Turn character right
