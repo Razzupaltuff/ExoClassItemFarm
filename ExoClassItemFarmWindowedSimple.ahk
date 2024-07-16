@@ -5,6 +5,7 @@
 ; This version works with 1080 windowed. Despite being the same resolution, some click coordinates need to be adjusted for 1080p fullscreen.
 ; v1: Redesigned the code, added code for window mode
 ; v2: Fixed the character often not turning at the start when reloading into the Landing directly from the Landing, more code restructuring, increased wait time before running to chest
+; v3: Changed start of running part a bit to avoid the character not turning in the beginning (which sometimes still occurred)
 
 ; Change the values below to YOUR keybinds
 OpenMapKey = M
@@ -73,9 +74,9 @@ Loop {    									; Infinite loop to go to orbit
 		Sleep 1000
 		Send {w Down}						; Hold w
 		Send {%SprintKey% Down}				; Activate sprint
+		TurnCharacter(-10)					; Turn character slightly left
 		Sleep 100
-		TurnCharacter(-5)					; Turn character slightly left
-		TurnCharacter(-695)					; Turn character slightly left
+		TurnCharacter(-690)					; Turn character slightly left
 		Sleep 7400							; Run towards plant for 7.4 seconds (by waiting 7.4s before releasing sprint and walk forward keys)
 		Send {%SprintKey% Up}				; Let go of sprint
 		Send {w Up}							; Let go of w
